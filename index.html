@@ -6,25 +6,31 @@
   <title>Calculadora de Preço de Venda</title>
   <style>
     :root{
-      --bg:#0b1320; --panel:#121a2b; --muted:#94a3b8; --ink:#e2e8f0; --accent:#4f46e5; --good:#10b981; --bad:#ef4444;
-      --line:#1f2937;
+      --bg:#f6f8fa; /* fundo claro */
+      --panel:#ffffff; /* painel branco */
+      --muted:#6b7280; /* texto secundário escuro */
+      --ink:#22223b; /* texto principal escuro */
+      --accent:#2563eb; /* azul forte para botões */
+      --good:#22c55e; /* verde mais vibrante */
+      --bad:#ef4444; /* vermelho */
+      --line:#d1d5db; /* linhas claras */
     }
     *{box-sizing:border-box}
-    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Inter,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+  body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Inter,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink)}
     .wrap{max-width:1100px;margin:40px auto;padding:24px}
-    h1{font-size:clamp(20px,2.6vw,34px);margin:0 0 8px}
-    p.sub{margin:0 0 24px;color:var(--muted)}
-    .card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px 18px 6px}
+    h1{font-size:clamp(20px,2.6vw,34px);margin:24px}
+    p.sub{margin:24px;color:var(--muted)}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px 18px 6px;box-shadow:0 2px 8px rgba(0,0,0,0.04)}
     .grid{display:grid;grid-template-columns:1.2fr .6fr .8fr;gap:8px 10px;align-items:center}
     .grid.header{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px dashed var(--line);padding-bottom:8px;margin-bottom:6px}
     .row{padding:8px 0;border-bottom:1px dashed var(--line)}
     .row:last-child{border-bottom:0}
     label{display:flex;align-items:center;gap:8px}
     label .hint{color:var(--muted);font-size:12px}
-    input[type=number]{width:100%;background:#0f172a;color:var(--ink);border:1px solid #1f2a44;border-radius:10px;padding:10px 12px;font-size:14px;outline:0}
+  input[type=number]{width:100%;background:#f3f4f6;color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px;outline:0}
     input[readonly]{opacity:.7}
     .totals{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:18px}
-    .kpi{background:#0f1627;border:1px solid var(--line);border-radius:16px;padding:14px}
+  .kpi{background:#f3f4f6;border:1px solid var(--line);border-radius:16px;padding:14px}
     .kpi h3{margin:0 0 6px;font-size:13px;color:var(--muted);font-weight:600}
     .kpi .v{font-size:clamp(18px,2.5vw,28px);font-weight:700}
     .kpi .ok{color:var(--good)}
@@ -52,7 +58,8 @@
           font-size: 22px;
         }
         .card {
-          padding: 10px 8px 4px;
+          padding: 24px;
+          margin: 24px;
         }
         .grid {
           grid-template-columns: 1fr 80px 100px;
@@ -77,7 +84,7 @@
           font-size: 16px;
         }
         .card {
-          padding: 4px 2px 2px;
+          padding: 24px;
           border-radius: 10px;
         }
         .grid, .grid.header {
