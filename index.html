@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Calculadora de Preço de Venda</title>
+  <style>
+    :root{
+      --bg:#0b1320; --panel:#121a2b; --muted:#94a3b8; --ink:#e2e8f0; --accent:#4f46e5; --good:#10b981; --bad:#ef4444;
+      --line:#1f2937;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Inter,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+    .wrap{max-width:1100px;margin:40px auto;padding:24px}
+    h1{font-size:clamp(20px,2.6vw,34px);margin:0 0 8px}
+    p.sub{margin:0 0 24px;color:var(--muted)}
+    .card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px 18px 6px}
+    .grid{display:grid;grid-template-columns:1.2fr .6fr .8fr;gap:8px 10px;align-items:center}
+    .grid.header{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px dashed var(--line);padding-bottom:8px;margin-bottom:6px}
+    .row{padding:8px 0;border-bottom:1px dashed var(--line)}
+    .row:last-child{border-bottom:0}
+    label{display:flex;align-items:center;gap:8px}
+    label .hint{color:var(--muted);font-size:12px}
+    input[type=number]{width:100%;background:#0f172a;color:var(--ink);border:1px solid #1f2a44;border-radius:10px;padding:10px 12px;font-size:14px;outline:0}
+    input[readonly]{opacity:.7}
+    .totals{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:18px}
+    .kpi{background:#0f1627;border:1px solid var(--line);border-radius:16px;padding:14px}
+    .kpi h3{margin:0 0 6px;font-size:13px;color:var(--muted);font-weight:600}
+    .kpi .v{font-size:clamp(18px,2.5vw,28px);font-weight:700}
+    .kpi .ok{color:var(--good)}
+    .kpi .warn{color:var(--bad)}
+    .row .right{display:flex;gap:8px}
+    .hdr{display:flex;align-items:center;justify-content:space-between;margin:6px 0 14px}
+    .hdr .actions{display:flex;gap:10px}
+    button{background:var(--accent);color:#fff;border:0;border-radius:12px;padding:10px 14px;font-weight:600;cursor:pointer}
+    button.ghost{background:transparent;border:1px solid var(--line);color:var(--ink)}
+    .note{color:var(--muted);font-size:12px;margin-top:6px}
+    .section-title{margin:18px 0 8px;font-weight:700;opacity:.9}
+    .cols{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    @media (max-width:880px){
+      .grid{grid-template-columns:1fr 120px 160px}
+      .totals{grid-template-columns:1fr}
+      .cols{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Calculadora de Preço de Venda</h1>
+    <p class="sub">Preencha os campos. A coluna <strong>%</strong> é sempre sobre o <em>Preço de Venda</em> (exceto “Campanha de Vendas”, que é % sobre o <em>Preço de Anúncio</em>). Tudo calcula automaticamente.</p>
+
+    <div class="card">
+      <div class="hdr">
+        <div class="section-title">Topo do preço</div>
+        <div class="actions">
+          <button class="ghost" id="btnClear">Limpar</button>
+          <button id="btnShare">Compartilhar valores</button>
+        </div>
+      </div>
+
+      <div class="grid header"><div></div><div>%</div><div>R$</div></div>
+
+      <div class="row grid">
+        <label for="precoAnuncio">• Preço de Anúncio</label>
+        <div></div>
+        <input type="number" id="precoAnuncio" min="0" step="0.01" placeholder="0,00" />
+      </div>
+
+      <div class="row grid">
+        <label for="campanhaPct">(−) Campanha de Vendas <span class="hint">desconto</span></label>
+        <input type="number" id="campanhaPct" min="0" max="100" step="0.01" placeholder="0,00" />
+        <input type="number" id="campanhaVal" min="0" step="0.01" placeholder="0,00" />
+      </div>
+
+      <div class="row grid">
+        <label for="precoVenda"><strong>• Preço de Venda</strong></label>
+        <div></div>
+        <input type="number" id="precoVenda" min="0" step="0.01" placeholder="0,00" />
+      </div>
+
+      <div class="section-title">Deduções / Custos</div>
+      <div class="grid header"><div></div><div>%</div><div>R$</div></div>
+
+      <div class="row grid">
+        <label for="comissaoPct">(−) Comissão Canal</label>
+        <input type="number" id="comissaoPct" min="0" max="100" step="0.01" placeholder="0,00" />
+        <input type="number" id="comissaoVal" min="0" step="0.01" placeholder="0,00" />
+      </div>
+
+      <div class="row grid">
+        <label for="taxaFixaVal">(−) Taxa Fixa Canal</label>
+        <input type="number" id="taxaFixaPct" readonly placeholder="—" />
+        <input type="number" id="taxaFixaVal" min="0" step="0.01" placeholder="0,00" />
+      </div>
+
+      <div class="row grid">
+        <label for="freteVal">(−) Frete</label>
+        <input type="number" id="fretePct" readonly placeholder="—" />
+        <input type="number" id="freteVal" min="0" step="0.01" placeholder="0,00" />
+      </div>
+
+      <div class="row grid">
+        <label for="custoProdutoVal">(−) Custo Produto</label>
+        <input type="number" id="custoProdutoPct" readonly placeholder="—" />
+        <input type="number" id="custoProdutoVal" min="0" step="0.01" placeholder="0,00" />
+      </div>
+
+      <div class="row grid">
+        <label for="custoFixoPct">(−) Custo Fixo Empresa</label>
+        <input type="number" id="custoFixoPct" min="0" max="100" step="0.01" placeholder="0,00" />
+        <input type="number" id="custoFixoVal" min="0" step="0.01" placeholder="0,00" />
+      </div>
+
+      <div class="row grid">
+        <label for="adsPct">(−) Publicidade / Ads</label>
+        <input type="number" id="adsPct" min="0" max="100" step="0.01" placeholder="0,00" />
+        <input type="number" id="adsVal" min="0" step="0.01" placeholder="0,00" />
+      </div>
+
+      <div class="row grid">
+        <label for="impostosPct">(−) Impostos</label>
+        <input type="number" id="impostosPct" min="0" max="100" step="0.01" placeholder="0,00" />
+        <input type="number" id="impostosVal" min="0" step="0.01" placeholder="0,00" />
+      </div>
+
+      <div class="row grid">
+        <label for="margemDesejadaPct">(alvo) Margem Desejada</label>
+        <input type="number" id="margemDesejadaPct" min="0" max="100" step="0.01" placeholder="0,00" />
+        <input type="number" id="margemDesejadaVal" readonly placeholder="—" />
+      </div>
+
+      <div class="totals">
+        <div class="kpi">
+          <h3>Custos Totais</h3>
+          <div class="v" id="kpiCustos">R$ 0,00</div>
+          <div class="note" id="kpiCustosPct">0,00% do preço de venda</div>
+        </div>
+        <div class="kpi">
+          <h3>Lucro Líquido</h3>
+          <div class="v" id="kpiLucro">R$ 0,00</div>
+          <div class="note" id="kpiMargem">Margem líquida: 0,00%</div>
+        </div>
+        <div class="kpi">
+          <h3>Preço p/ atingir Margem Desejada</h3>
+          <div class="v" id="kpiPrecoAlvo">—</div>
+          <div class="note">Ajuste o preço de venda para alcançar a margem alvo.</div>
+        </div>
+      </div>
+
+      <p class="note">Dica: você pode digitar tanto <strong>%</strong> quanto <strong>R$</strong>. Alterar um campo atualiza o outro automaticamente.</p>
+    </div>
+  </div>
+
+  <script>
+    // Utilitários
+    const fmtBRL = n => n.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+    const fmtPct = n => (isFinite(n)? n : 0).toFixed(2) + '%';
+
+    // Mapeamento de elementos
+    const el = id => document.getElementById(id);
+
+    const fields = {
+      precoAnuncio: el('precoAnuncio'),
+      campanhaPct: el('campanhaPct'),
+      campanhaVal: el('campanhaVal'),
+      precoVenda:  el('precoVenda'),
+
+      comissaoPct: el('comissaoPct'), comissaoVal: el('comissaoVal'),
+      taxaFixaVal: el('taxaFixaVal'),
+      freteVal: el('freteVal'),
+      custoProdutoVal: el('custoProdutoVal'),
+      custoFixoPct: el('custoFixoPct'), custoFixoVal: el('custoFixoVal'),
+      adsPct: el('adsPct'), adsVal: el('adsVal'),
+      impostosPct: el('impostosPct'), impostosVal: el('impostosVal'),
+      margemDesejadaPct: el('margemDesejadaPct'), margemDesejadaVal: el('margemDesejadaVal'),
+
+      taxaFixaPct: el('taxaFixaPct'), fretePct: el('fretePct'), custoProdutoPct: el('custoProdutoPct'),
+    };
+
+    const kpis = {
+      custos: el('kpiCustos'), custosPct: el('kpiCustosPct'),
+      lucro: el('kpiLucro'), margem: el('kpiMargem'),
+      precoAlvo: el('kpiPrecoAlvo')
+    };
+
+    // Leitura segura
+    function num(v){ const n = parseFloat(v); return isFinite(n)? n : 0; }
+
+    function recompute(from){
+      const pa = num(fields.precoAnuncio.value);
+      let pv = num(fields.precoVenda.value);
+
+      // CAMPANHA (sobre Preço de Anúncio)
+      let campPct = num(fields.campanhaPct.value);
+      let campVal = num(fields.campanhaVal.value);
+
+      if(from === 'campanhaPct') campVal = pa * campPct/100;
+      if(from === 'campanhaVal') campPct = pa ? (campVal/pa*100) : 0;
+
+      // Se usuário mexeu no Preço de Anúncio ou campanha, PV = PA - campanha
+      if(['precoAnuncio','campanhaPct','campanhaVal'].includes(from)){
+        pv = Math.max(0, pa - campVal);
+        fields.precoVenda.value = pv.toFixed(2);
+      }
+
+      // Se usuário mexeu no preço de venda diretamente, ressincroniza % dos custos (pois % é sobre PV)
+      if(from === 'precoVenda'){
+        pv = Math.max(0, pv);
+      }
+
+      // Sincroniza campos campanha no DOM
+      fields.campanhaPct.value = campPct ? campPct.toFixed(2) : '';
+      fields.campanhaVal.value = campVal ? campVal.toFixed(2) : '';
+
+      // Custos % são sobre PV
+      function syncPair(pctEl, valEl){
+        const pct = num(pctEl.value);
+        const val = num(valEl.value);
+        if(from === pctEl.id)        { valEl.value = (pv * pct/100).toFixed(2); }
+        else if(from === valEl.id)   { pctEl.value = pv ? (val/pv*100).toFixed(2) : '0.00'; }
+        else if(['precoVenda'].includes(from)){ // preço mudou → recalc valor a partir do % atual
+          if(pctEl.value !== '') valEl.value = (pv * num(pctEl.value)/100).toFixed(2);
+        }
+      }
+
+      syncPair(fields.comissaoPct, fields.comissaoVal);
+      syncPair(fields.custoFixoPct, fields.custoFixoVal);
+      syncPair(fields.adsPct, fields.adsVal);
+      syncPair(fields.impostosPct, fields.impostosVal);
+
+      // Taxas de valor fixo: atualizar % fantasma nos inputs read-only (só informativo)
+      function ghostPct(valEl, pctEl){
+        const v = num(valEl.value); pctEl.value = pv ? (v/pv*100).toFixed(2) : '';
+      }
+      ghostPct(fields.taxaFixaVal, fields.taxaFixaPct);
+      ghostPct(fields.freteVal, fields.fretePct);
+      ghostPct(fields.custoProdutoVal, fields.custoProdutoPct);
+
+      // Somatório de custos
+      const custos = [
+        fields.comissaoVal, fields.taxaFixaVal, fields.freteVal, fields.custoProdutoVal,
+        fields.custoFixoVal, fields.adsVal, fields.impostosVal
+      ].reduce((acc, el)=> acc + num(el.value), 0);
+
+      const lucro = Math.max(0, pv - custos);
+      const margem = pv ? (lucro/pv*100) : 0;
+
+      kpis.custos.textContent = fmtBRL(custos);
+      kpis.custosPct.textContent = `${margem>=0? (100-margem).toFixed(2) : '0.00'}% do preço de venda`;
+      kpis.lucro.textContent = fmtBRL(lucro);
+      kpis.margem.textContent = `Margem líquida: ${margem.toFixed(2)}%`;
+
+      // Margem desejada → preço alvo para atingi-la
+      const alvoPct = num(fields.margemDesejadaPct.value);
+      if(alvoPct>0 && alvoPct<100){
+        const precoAlvo = custos / (1 - alvoPct/100);
+        kpis.precoAlvo.textContent = fmtBRL(precoAlvo);
+        // valor de margem desejada em R$ sobre PV atual (informativo)
+        fields.margemDesejadaVal.value = (pv * alvoPct/100).toFixed(2);
+        // Semáforo visual no KPI de lucro
+        const lucroAtualPct = margem;
+        kpis.lucro.classList.toggle('ok', lucroAtualPct+1e-6 >= alvoPct);
+        kpis.lucro.classList.toggle('warn', lucroAtualPct+1e-6 < alvoPct);
+      } else {
+        kpis.precoAlvo.textContent = '—';
+        fields.margemDesejadaVal.value = '';
+        kpis.lucro.classList.remove('ok','warn');
+      }
+
+      // Atualiza querystring (para compartilhar)
+      queueShareState();
+    }
+
+    // Eventos
+    const ids = [
+      'precoAnuncio','campanhaPct','campanhaVal','precoVenda',
+      'comissaoPct','comissaoVal','taxaFixaVal','freteVal','custoProdutoVal',
+      'custoFixoPct','custoFixoVal','adsPct','adsVal','impostosPct','impostosVal','margemDesejadaPct'
+    ];
+    ids.forEach(id=>{
+      el(id).addEventListener('input', () => recompute(id));
+    });
+
+    // Limpar
+    el('btnClear').addEventListener('click', ()=>{
+      ids.concat(['campanhaVal','campanhaPct']).forEach(id=>{ el(id).value=''; });
+      ['taxaFixaPct','fretePct','custoProdutoPct'].forEach(id=>{ el(id).value=''; });
+      recompute('precoVenda');
+    });
+
+    // Compartilhar (querystring)
+    function getState(){
+      const s={}; ids.concat(['campanhaVal','campanhaPct']).forEach(id=>{ const v=el(id).value; if(v!==''&&v!==null) s[id]=v; }); return s;
+    }
+    let shareTimer;
+    function queueShareState(){ clearTimeout(shareTimer); shareTimer=setTimeout(()=>{ const s=new URLSearchParams(getState()).toString(); history.replaceState(null,'', location.pathname + (s?'?'+s:'')); }, 150); }
+
+    function loadFromQS(){
+      const q=new URLSearchParams(location.search);
+      q.forEach((v,k)=>{ const e=el(k); if(e) e.value=v; });
+      recompute('precoVenda');
+    }
+
+    // Inicializa
+    loadFromQS();
+  </script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+  async function gerarPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    doc.setFontSize(14);
+    doc.text("Relatório de Cálculo de Preço de Venda", 14, 20);
+
+    let y = 35;
+
+    function linha(titulo, valorPct, valorR) {
+      doc.setFontSize(11);
+      doc.text(titulo, 14, y);
+      doc.text(valorPct || "-", 100, y);
+      doc.text(valorR || "-", 160, y);
+      y += 8;
+    }
+
+    // Cabeçalho da tabela
+    doc.setFontSize(12);
+    doc.text("Descrição", 14, 30);
+    doc.text("%", 100, 30);
+    doc.text("R$", 160, 30);
+
+    // Coleta os dados
+    linha("Preço de Anúncio", "", fields.precoAnuncio.value);
+    linha("Campanha de Vendas", fields.campanhaPct.value, fields.campanhaVal.value);
+    linha("Preço de Venda", "", fields.precoVenda.value);
+    linha("Comissão Canal", fields.comissaoPct.value, fields.comissaoVal.value);
+    linha("Taxa Fixa Canal", "", fields.taxaFixaVal.value);
+    linha("Frete", "", fields.freteVal.value);
+    linha("Custo Produto", "", fields.custoProdutoVal.value);
+    linha("Custo Fixo Empresa", fields.custoFixoPct.value, fields.custoFixoVal.value);
+    linha("Publicidade / Ads", fields.adsPct.value, fields.adsVal.value);
+    linha("Impostos", fields.impostosPct.value, fields.impostosVal.value);
+    linha("Margem Desejada", fields.margemDesejadaPct.value, fields.margemDesejadaVal.value);
+
+    y += 10;
+    doc.setFontSize(12);
+    doc.text("Resumo", 14, y);
+    y += 8;
+    doc.text("Custos Totais: " + kpis.custos.textContent, 14, y); y+=8;
+    doc.text("Lucro Líquido: " + kpis.lucro.textContent, 14, y); y+=8;
+    doc.text(kpis.margem.textContent, 14, y); y+=8;
+    doc.text("Preço p/ atingir Margem Desejada: " + kpis.precoAlvo.textContent, 14, y);
+
+    doc.save("relatorio-preco-venda.pdf");
+  }
+
+  // Atualiza botão
+  el("btnShare").addEventListener("click", async () => {
+    gerarPDF(); // Chama o gerador de PDF
+  });
+</script>
+</body>
+</html>
